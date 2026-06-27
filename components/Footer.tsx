@@ -2,6 +2,8 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { Heart } from 'lucide-react';
 
+const basePath = process.env.NEXT_PUBLIC_BASE_PATH ?? '';
+
 const NAV_LINKS = [
   { href: '/', label: 'Home' },
   { href: '/courses', label: 'Courses' },
@@ -27,7 +29,7 @@ export default function Footer() {
           <div>
             <Link href="/" style={{ display: 'inline-block', textDecoration: 'none', marginBottom: '0.875rem' }}>
               <Image
-                src="/logo.png"
+                src={`${basePath}/logo.png`}
                 alt="Lane Academy"
                 width={130}
                 height={44}

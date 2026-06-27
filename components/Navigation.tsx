@@ -8,6 +8,8 @@ import { useTheme } from 'next-themes';
 import { Sun, Moon, Menu, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
+const basePath = process.env.NEXT_PUBLIC_BASE_PATH ?? '';
+
 const NAV_LINKS = [
   { href: '/', label: 'Home' },
   { href: '/courses', label: 'Courses' },
@@ -50,7 +52,7 @@ export default function Navigation() {
           {/* Logo */}
           <Link href="/" style={{ display: 'flex', alignItems: 'center', textDecoration: 'none', flexShrink: 0 }}>
             <Image
-              src="/logo.png"
+              src={`${basePath}/logo.png`}
               alt="Lane Academy"
               width={140}
               height={47}

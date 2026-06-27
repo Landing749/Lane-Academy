@@ -19,6 +19,8 @@ import { buildCloudinaryUrl } from '@/lib/cloudinary';
 import type { User } from 'firebase/auth';
 import type { Course, Category, Difficulty } from '@/types';
 
+const basePath = process.env.NEXT_PUBLIC_BASE_PATH ?? '';
+
 // ─── Cloudinary unsigned upload ───────────────────────────────────────────────
 const CLOUD_NAME = 'damr6r9op';
 const UPLOAD_PRESET = 'org-resources';
@@ -741,7 +743,7 @@ function LoginScreen({ onLogin }: { onLogin: () => void }) {
         {/* Logo */}
         <div style={{ marginBottom: '2rem' }}>
           <Image
-            src="/logo.png"
+            src={`${basePath}/logo.png`}
             alt="Lane Academy"
             width={150}
             height={50}
@@ -942,7 +944,7 @@ export default function AdminClient() {
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
           <Image
-            src="/logo.png"
+            src={`${basePath}/logo.png`}
             alt="Lane Academy"
             width={110}
             height={37}
