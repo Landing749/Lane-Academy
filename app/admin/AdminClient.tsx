@@ -25,11 +25,35 @@ const basePath = process.env.NEXT_PUBLIC_BASE_PATH ?? '';
 const CLOUD_NAME = 'damr6r9op';
 const UPLOAD_PRESET = 'org-resources';
 
+const COVER_W = 1280;
+const COVER_H = 720;
+
+/** Resize + crop to COVER_W x COVER_H using canvas (object-cover logic). */
+async function resizeToCover(file: File): Promise<Blob> {
+  return new Promise((resolve, reject) => {
+    const img = new window.Image();
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      canvas.width = COVER_W;
+      canvas.height = COVER_H;
+      const ctx = canvas.getContext('2d')!;
+      const scale = Math.max(COVER_W / img.width, COVER_H / img.height);
+      const sw = img.width * scale;
+      const sh = img.height * scale;
+      ctx.drawImage(img, (COVER_W - sw) / 2, (COVER_H - sh) / 2, sw, sh);
+      canvas.toBlob((b) => b ? resolve(b) : reject(new Error('Canvas toBlob failed')), 'image/jpeg', 0.92);
+    };
+    img.onerror = reject;
+    img.src = URL.createObjectURL(file);
+  });
+}
+
 async function uploadToCloudinary(file: File, folder = 'lane-academy/courses'): Promise<{
   publicId: string; secureUrl: string; width: number; height: number;
 }> {
+  const resized = await resizeToCover(file);
   const fd = new FormData();
-  fd.append('file', file);
+  fd.append('file', resized, file.name.replace(/\.[^.]+$/, '.jpg'));
   fd.append('upload_preset', UPLOAD_PRESET);
   fd.append('folder', folder);
   const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`, {
@@ -54,6 +78,7 @@ function blankForm(): Partial<CourseInput> {
     tags: [], featured: false, published: false,
     createdAt: Date.now(), updatedAt: Date.now(),
     cover: { publicId: '', secureUrl: '', width: 0, height: 0, alt: '' },
+    courseUrl: '',
   };
 }
 
@@ -282,9 +307,14 @@ function CourseFormModal({
 
           {/* Cover image */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
-            <label style={{ fontSize: '0.78rem', fontWeight: 600, color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
-              Cover Image
-            </label>
+            <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.6rem' }}>
+              <label style={{ fontSize: '0.78rem', fontWeight: 600, color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+                Cover Image
+              </label>
+              <span style={{ fontSize: '0.72rem', color: 'var(--text-tertiary)', fontStyle: 'italic' }}>
+                Recommended: 1280 × 720 px (16:9) — any size will be auto-resized to fit
+              </span>
+            </div>
             <div style={{
               display: 'flex', gap: '1rem', alignItems: 'flex-start', flexWrap: 'wrap',
             }}>
@@ -450,6 +480,9 @@ function CourseFormModal({
             {/* Modules */}
             {input('Modules', 'moduleCount', 'number', '1')}
           </div>
+
+          {/* Course URL */}
+          {input('Course URL', 'courseUrl', 'url', 'https://...')}
 
           {/* Tags */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>

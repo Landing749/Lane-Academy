@@ -34,6 +34,7 @@ export interface Course {
   createdAt: number;
   updatedAt: number;
   cover: CourseCover;
+  courseUrl?: string;
 }
 
 export interface CategoryInfo {
