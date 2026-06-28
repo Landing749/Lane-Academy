@@ -6,7 +6,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import {
   LogOut, Plus, Edit3, Trash2, Eye, EyeOff,
   Star, StarOff, Upload, X, Check, AlertCircle, Loader2,
-  Search, Globe, Lock,
+  Search, Globe, Lock, RefreshCw,
 } from 'lucide-react';
 import {
   adminLogin, adminLogout, onAdminAuthChange,
@@ -20,6 +20,9 @@ import type { User } from 'firebase/auth';
 import type { Course, Category, Difficulty } from '@/types';
 
 const basePath = process.env.NEXT_PUBLIC_BASE_PATH ?? '';
+const GH_OWNER        = process.env.NEXT_PUBLIC_GH_OWNER         ?? '';
+const GH_REPO         = process.env.NEXT_PUBLIC_GH_REPO          ?? '';
+const GH_DEPLOY_TOKEN = process.env.NEXT_PUBLIC_GH_DEPLOY_TOKEN  ?? '';
 
 // ─── Cloudinary unsigned upload ───────────────────────────────────────────────
 const CLOUD_NAME = 'damr6r9op';
@@ -880,6 +883,40 @@ export default function AdminClient() {
   const [editTarget, setEditTarget] = useState<Course | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<Course | null>(null);
   const [toast, setToast] = useState<{ msg: string; type: 'success' | 'error' } | null>(null);
+  const [redeploying, setRedeploying] = useState(false);
+
+  const handleRedeploy = async () => {
+    if (!GH_DEPLOY_TOKEN) {
+      showToast('GH_DEPLOY_TOKEN not set. Add it as a GitHub Actions secret.', 'error');
+      return;
+    }
+    setRedeploying(true);
+    try {
+      const res = await fetch(
+        `https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/actions/workflows/deploy.yml/dispatches`,
+        {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${GH_DEPLOY_TOKEN}`,
+            Accept: 'application/vnd.github+json',
+            'X-GitHub-Api-Version': '2022-11-28',
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ ref: 'main' }),
+        }
+      );
+      if (res.ok || res.status === 204) {
+        showToast('Redeploy triggered! GitHub Actions is rebuilding the site.');
+      } else {
+        const err = await res.json().catch(() => ({}));
+        showToast(`Redeploy failed: ${(err as { message?: string }).message ?? res.status}`, 'error');
+      }
+    } catch {
+      showToast('Redeploy failed. Check your token and try again.', 'error');
+    } finally {
+      setRedeploying(false);
+    }
+  };
 
   const showToast = (msg: string, type: 'success' | 'error' = 'success') => {
     setToast({ msg, type });
@@ -1042,6 +1079,23 @@ export default function AdminClient() {
             }}
           >
             <Plus size={16} /> Add Course
+          </button>
+          <button
+            onClick={handleRedeploy}
+            disabled={redeploying}
+            title="Trigger a GitHub Actions rebuild so new courses appear live"
+            style={{
+              display: 'flex', alignItems: 'center', gap: '0.5rem',
+              padding: '0.75rem 1.25rem', borderRadius: 12,
+              background: 'var(--surface-2)', color: 'var(--text-secondary)',
+              border: '1.5px solid var(--border)',
+              cursor: redeploying ? 'not-allowed' : 'pointer',
+              fontWeight: 600, fontSize: '0.9rem', fontFamily: 'inherit',
+              opacity: redeploying ? 0.6 : 1,
+            }}
+          >
+            <RefreshCw size={15} style={{ animation: redeploying ? 'spin 1s linear infinite' : 'none' }} />
+            {redeploying ? 'Triggering…' : 'Redeploy Site'}
           </button>
         </div>
 

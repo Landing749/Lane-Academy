@@ -5,15 +5,9 @@ interface Props {
   params: Promise<{ slug: string }>;
 }
 
-// With output: 'export', only pre-rendered paths are served.
-// Unknown slugs hit the 404 page automatically.
-export const dynamicParams = false;
-
-// Fetch published course slugs from Firebase REST API at build time.
-// Courses node has ".read": true so no auth token required.
-// Falls back to a placeholder slug so the static export always has at
-// least one path — prevents the "missing generateStaticParams" build error
-// when the Firebase endpoint is unreachable or returns no courses yet.
+// Fetch ALL course slugs (published or not) from Firebase REST API at build time.
+// This ensures every course page is pre-rendered — new courses require a redeploy.
+// The admin panel has a "Redeploy" button that triggers the GitHub Actions workflow.
 export async function generateStaticParams(): Promise<{ slug: string }[]> {
   try {
     const res = await fetch(
@@ -23,11 +17,11 @@ export async function generateStaticParams(): Promise<{ slug: string }[]> {
     if (!res.ok) return [{ slug: '_placeholder' }];
     const data = (await res.json()) as Record<
       string,
-      { slug?: string; published?: boolean }
+      { slug?: string }
     > | null;
     if (!data) return [{ slug: '_placeholder' }];
     const slugs = Object.values(data)
-      .filter((c) => c.published && c.slug)
+      .filter((c) => c.slug)
       .map((c) => ({ slug: c.slug as string }));
     return slugs.length > 0 ? slugs : [{ slug: '_placeholder' }];
   } catch {

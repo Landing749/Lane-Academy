@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { motion } from 'framer-motion';
 import {
   ArrowLeft, Clock, Layers, Tag, ShieldCheck,
-  BookOpen, CheckCircle2, Circle, ArrowRight,
+  BookOpen, CheckCircle2, Circle, ArrowRight, Share2, Check,
 } from 'lucide-react';
 import { getCourseBySlug } from '@/lib/firebase';
 import { buildCloudinaryUrl } from '@/lib/cloudinary';
@@ -34,6 +34,20 @@ export default function CoursePageClient({ slug }: Props) {
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
   const [progress, setProgress] = useState<LocalProgress | null>(null);
+  const [copied, setCopied] = useState(false);
+
+  const handleShare = async () => {
+    const url = window.location.href;
+    if (navigator.share) {
+      try {
+        await navigator.share({ title: course?.title ?? 'Lane Academy', url });
+        return;
+      } catch { /* user cancelled */ }
+    }
+    await navigator.clipboard.writeText(url);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
 
   useEffect(() => {
     getCourseBySlug(slug).then((c) => {
@@ -223,6 +237,22 @@ export default function CoursePageClient({ slug }: Props) {
                   ))}
                 </div>
               )}
+              {/* Share button */}
+              <button
+                onClick={handleShare}
+                style={{
+                  marginTop: '1.25rem',
+                  display: 'inline-flex', alignItems: 'center', gap: '0.45rem',
+                  padding: '0.55rem 1.1rem', borderRadius: 10,
+                  background: 'var(--surface-2)', border: '1.5px solid var(--border)',
+                  color: copied ? '#2C9B6A' : 'var(--text-secondary)',
+                  cursor: 'pointer', fontWeight: 600, fontSize: '0.83rem', fontFamily: 'inherit',
+                  transition: 'all 0.2s ease',
+                }}
+              >
+                {copied ? <Check size={14} /> : <Share2 size={14} />}
+                {copied ? 'Link copied!' : 'Share course'}
+              </button>
             </motion.div>
 
             {/* Right: cover image */}

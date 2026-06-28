@@ -48,6 +48,10 @@ jobs:
         env:
           # Automatically /lane-academy for repo pages, empty for user/org pages.
           NEXT_PUBLIC_BASE_PATH: ${{ steps.pages.outputs.base_path }}
+          # Exposes repo info to the admin "Redeploy Site" button.
+          NEXT_PUBLIC_GH_OWNER: ${{ github.repository_owner }}
+          NEXT_PUBLIC_GH_REPO: ${{ github.event.repository.name }}
+          NEXT_PUBLIC_GH_DEPLOY_TOKEN: ${{ secrets.GH_DEPLOY_TOKEN }}
 
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
