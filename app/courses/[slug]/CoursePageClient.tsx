@@ -472,21 +472,42 @@ export default function CoursePageClient({ slug }: Props) {
                     Course complete!
                   </p>
                 </div>
-              ) : (
-                <button style={{
-                  width: '100%', padding: '0.75rem',
-                  borderRadius: 10, background: 'var(--accent)',
-                  color: 'white', border: 'none',
-                  cursor: 'pointer', fontWeight: 600,
-                  fontSize: '0.9rem', fontFamily: 'inherit',
-                  display: 'flex', alignItems: 'center',
-                  justifyContent: 'center', gap: '0.4rem',
-                  transition: 'background 0.2s ease',
-                }}
+              ) : course.courseUrl ? (
+                <a
+                  href={course.courseUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{
+                    width: '100%', padding: '0.75rem',
+                    borderRadius: 10, background: 'var(--accent)',
+                    color: 'white', border: 'none',
+                    cursor: 'pointer', fontWeight: 600,
+                    fontSize: '0.9rem', fontFamily: 'inherit',
+                    display: 'flex', alignItems: 'center',
+                    justifyContent: 'center', gap: '0.4rem',
+                    transition: 'background 0.2s ease',
+                    textDecoration: 'none',
+                    boxSizing: 'border-box',
+                  }}
                   onMouseEnter={(e) => { e.currentTarget.style.background = 'var(--accent-hover)'; }}
                   onMouseLeave={(e) => { e.currentTarget.style.background = 'var(--accent)'; }}
                 >
                   {completedCount === 0 ? 'Start learning' : 'Continue'} <ArrowRight size={15} />
+                </a>
+              ) : (
+                <button
+                  disabled
+                  style={{
+                    width: '100%', padding: '0.75rem',
+                    borderRadius: 10, background: 'var(--surface-2)',
+                    color: 'var(--text-tertiary)', border: '1.5px solid var(--border)',
+                    cursor: 'not-allowed', fontWeight: 600,
+                    fontSize: '0.9rem', fontFamily: 'inherit',
+                    display: 'flex', alignItems: 'center',
+                    justifyContent: 'center', gap: '0.4rem',
+                  }}
+                >
+                  Coming soon
                 </button>
               )}
             </motion.div>
